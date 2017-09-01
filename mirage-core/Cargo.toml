@@ -1,0 +1,7 @@
+[package]
+name = "mirage-core"
+version = "0.1.0"
+authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
+
+[dependencies]
+mirage-async = { path = "../mirage-async" }

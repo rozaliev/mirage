@@ -1,0 +1,13 @@
+[package]
+name = "mirage"
+version = "0.1.0"
+authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
+
+[dependencies]
+mirage-async = { path = "mirage-async" }
+mirage-async-codegen = { path = "mirage-async-codegen" }
+mirage-net = { path = "mirage-net" }
+mirage-core = { path = "mirage-core" }
+
+
+[workspace]

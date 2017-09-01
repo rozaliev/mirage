@@ -1,0 +1,9 @@
+[package]
+name = "mirage-net"
+version = "0.1.0"
+authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
+
+[dependencies]
+mio = "*"
+mirage-async = { path = "../mirage-async" }
+mirage-async-codegen = { path = "../mirage-async-codegen" }
