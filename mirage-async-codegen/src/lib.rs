@@ -30,9 +30,9 @@ pub fn async(_attribute: TokenStream, function: TokenStream) -> TokenStream {
                              $($b)*
                         };
                     }
-
                     i! {
                         ::mirage_async::AsAsync(static move || {
+                            if false { yield };
                             #block
                         })
                     }
