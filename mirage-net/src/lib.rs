@@ -4,10 +4,13 @@
 
 extern crate mirage_async;
 extern crate mirage_async_codegen;
+extern crate net2;
 
 
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::io::{Read, Result as IoResult, Write};
+use std::io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Write};
+
+use net2::{TcpBuilder, TcpStreamExt};
 
 use mirage_async::Async;
 use mirage_async_codegen::async;
@@ -18,6 +21,7 @@ mod nb_macro;
 mod sys {
     pub(crate) use std::net::{TcpListener, TcpStream};
 }
+
 
 pub struct TcpStream(sys::TcpStream);
 pub struct TcpListener(sys::TcpListener);
@@ -36,6 +40,21 @@ impl TcpListener {
 }
 
 impl TcpStream {
+    #[async]
+    pub fn connect<'a>(addr: &'a SocketAddr) -> impl Async<IoResult<TcpStream>> + 'a {
+        let sock = match *addr {
+            SocketAddr::V4(..) => TcpBuilder::new_v4(),
+            SocketAddr::V6(..) => TcpBuilder::new_v6(),
+        }?.to_tcp_stream()?;
+
+        // sock.set_nonblocking(true)?;
+        await_nb!(sock.connect(addr))?;
+        println!("yo");
+
+        Ok(TcpStream(sock))
+    }
+
+
     #[async]
     pub fn read<'a, 'b>(&'a mut self, buf: &'b mut [u8]) -> impl Async<IoResult<usize>> + 'a
     where

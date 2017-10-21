@@ -5,5 +5,6 @@ authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
 
 [dependencies]
 mio = "*"
+net2 = "*"
 mirage-async = { path = "../mirage-async" }
 mirage-async-codegen = { path = "../mirage-async-codegen" }
