@@ -2,15 +2,17 @@
 #![feature(generators)]
 #![feature(conservative_impl_trait)]
 
+
+#[macro_use]
 extern crate mirage_async;
 extern crate mirage_async_codegen;
+
+extern crate mio;
 extern crate net2;
 
 
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::SocketAddr;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Write};
-
-use net2::{TcpBuilder, TcpStreamExt};
 
 use mirage_async::Async;
 use mirage_async_codegen::async;
@@ -19,7 +21,7 @@ use mirage_async_codegen::async;
 mod nb_macro;
 
 mod sys {
-    pub(crate) use std::net::{TcpListener, TcpStream};
+    pub(crate) use mio::tcp::{TcpListener, TcpStream};
 }
 
 
@@ -28,11 +30,8 @@ pub struct TcpListener(sys::TcpListener);
 
 
 impl TcpListener {
-    pub fn bind<A: ToSocketAddrs>(addr: A) -> IoResult<TcpListener> {
-        sys::TcpListener::bind(addr).map(|l| {
-            l.set_nonblocking(true);
-            TcpListener(l)
-        })
+    pub fn bind(addr: &SocketAddr) -> IoResult<TcpListener> {
+        sys::TcpListener::bind(addr).map(TcpListener)
     }
 
     #[async]
@@ -45,16 +44,7 @@ impl TcpListener {
 impl TcpStream {
     #[async]
     pub fn connect<'a>(addr: &'a SocketAddr) -> impl Async<IoResult<TcpStream>> + 'a {
-        let sock = match *addr {
-            SocketAddr::V4(..) => TcpBuilder::new_v4(),
-            SocketAddr::V6(..) => TcpBuilder::new_v6(),
-        }?.to_tcp_stream()?;
-
-        // sock.set_nonblocking(true)?;
-        await_nb!(sock.connect(addr))?;
-        println!("yo");
-
-        Ok(TcpStream(sock))
+        await_nb!(sys::TcpStream::connect(addr)).map(TcpStream)
     }
 
 
@@ -72,5 +62,31 @@ impl TcpStream {
         'b: 'a,
     {
         await_nb!(self.0.write(buf))
+    }
+
+    #[async]
+    pub fn write_all<'a, 'b>(&'a mut self, mut buf: &'b [u8]) -> impl Async<IoResult<()>> + 'a
+    where
+        'b: 'a,
+    {
+        while !buf.is_empty() {
+            let r = await!(self.write(buf));
+            match r {
+                Ok(0) => {
+                    return Err(IoError::new(
+                        IoErrorKind::WriteZero,
+                        "failed to write whole buffer",
+                    ))
+                }
+                Ok(n) => buf = &buf[n..],
+                Err(e) => {
+                    if e.kind() == IoErrorKind::Interrupted {
+                        continue;
+                    }
+                    return Err(e);
+                }
+            }
+        }
+        Ok(())
     }
 }

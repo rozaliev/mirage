@@ -41,11 +41,12 @@ fn start() -> impl Async<()> {
 
 #[async]
 fn start_listener() -> impl Async<()> {
-    let lst = TcpListener::bind("127.0.0.1:3333").unwrap();
+    let addr = &"127.0.0.1:3333".parse().unwrap();
+    let lst = TcpListener::bind(addr).unwrap();
     let (mut conn, _) = await!(lst.accept()).unwrap();
 
-    for i in (0..50) {
+    for i in 0..50 {
         let s = format!("hello_{}", i);
-        await!(conn.write(s.as_bytes())).unwrap();
+        await!(conn.write_all(s.as_bytes())).unwrap();
     }
 }
