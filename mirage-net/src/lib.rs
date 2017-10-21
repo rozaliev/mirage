@@ -29,7 +29,10 @@ pub struct TcpListener(sys::TcpListener);
 
 impl TcpListener {
     pub fn bind<A: ToSocketAddrs>(addr: A) -> IoResult<TcpListener> {
-        sys::TcpListener::bind(addr).map(TcpListener)
+        sys::TcpListener::bind(addr).map(|l| {
+            l.set_nonblocking(true);
+            TcpListener(l)
+        })
     }
 
     #[async]
