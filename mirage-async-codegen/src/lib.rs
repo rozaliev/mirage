@@ -25,8 +25,16 @@ pub fn async(_attribute: TokenStream, function: TokenStream) -> TokenStream {
             let block = &item_fn.block;
             let t_block = quote! {
                 {
-                    move || {
-                        #block
+                    macro_rules! i {
+                        ($($b:tt)*) => {
+                             $($b)*
+                        };
+                    }
+
+                    i! {
+                        ::mirage_async::AsAsync(static move || {
+                            #block
+                        })
                     }
                 }
             };
