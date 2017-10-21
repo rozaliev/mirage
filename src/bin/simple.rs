@@ -14,6 +14,11 @@ use mirage_net::{TcpListener, TcpStream};
 use mirage_core::Core;
 
 fn main() {
+    ::std::thread::spawn(|| {
+        let mut core = Core::new();
+        core.run(start_listener());
+    });
+
     let mut core = Core::new();
     core.run(start());
 }
@@ -27,6 +32,20 @@ fn start() -> impl Async<()> {
 
     loop {
         let n = await!(sock.read(&mut buf)).unwrap();
+        if n == 0 {
+            return;
+        }
         println!("{}", ::std::str::from_utf8(&buf[..n]).unwrap());
+    }
+}
+
+#[async]
+fn start_listener() -> impl Async<()> {
+    let lst = TcpListener::bind("127.0.0.1:3333").unwrap();
+    let (mut conn, _) = await!(lst.accept()).unwrap();
+
+    for i in (0..50) {
+        let s = format!("hello_{}", i);
+        await!(conn.write(s.as_bytes())).unwrap();
     }
 }
