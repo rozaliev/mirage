@@ -4,8 +4,8 @@ macro_rules! await {
         let mut g = $e;
         loop {
             match g.poll() {
-                $crate::base::Await::NotReady => {},
-                $crate::base::Await::Done(r) => break r,                    
+                $crate::Await::NotReady => {},
+                $crate::Await::Done(r) => break r,                    
            }
            yield;
         }
