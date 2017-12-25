@@ -6,9 +6,8 @@
 mod macros;
 
 use std::ops::{Generator, GeneratorState};
-use std::marker::Move;
 
-pub trait Async<R>: ?Move {
+pub trait Async<R> {
     fn poll(&mut self) -> Await<R>;
 }
 
@@ -17,13 +16,21 @@ pub enum Await<T> {
     NotReady,
 }
 
-pub struct AsAsync<T: ?Move>(pub T);
+pub struct AsAsync<T>(pub T);
 
-impl<T: Generator<Return = R, Yield = ()> + ?Move, R> Async<R> for AsAsync<T> {
+impl<T: Generator<Return = R, Yield = ()>, R> Async<R> for AsAsync<T> {
     fn poll(&mut self) -> Await<R> {
         self.0.resume().into()
     }
 }
+impl<T: Generator<Return = R, Yield = ()>, R> Async<R> for Box<T> {
+    fn poll(&mut self) -> Await<R> {
+        (*self).resume().into()
+    }
+}
+
+
+
 
 impl<R> From<GeneratorState<(), R>> for Await<R> {
     fn from(f: GeneratorState<(), R>) -> Await<R> {

@@ -5,3 +5,4 @@ authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
 
 [dependencies]
 mirage-async = { path = "../mirage-async" }
+mio = "*"

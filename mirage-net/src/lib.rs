@@ -6,6 +6,7 @@
 #[macro_use]
 extern crate mirage_async;
 extern crate mirage_async_codegen;
+extern crate mirage_core;
 
 extern crate mio;
 extern crate net2;
@@ -24,8 +25,9 @@ mod sys {
     pub(crate) use mio::tcp::{TcpListener, TcpStream};
 }
 
-
+#[derive(Debug)]
 pub struct TcpStream(sys::TcpStream);
+#[derive(Debug)]
 pub struct TcpListener(sys::TcpListener);
 
 
@@ -36,7 +38,7 @@ impl TcpListener {
 
     #[async]
     pub fn accept<'a>(&'a self) -> impl Async<IoResult<(TcpStream, SocketAddr)>> + 'a {
-        let (s, a) = await_nb!(self.0.accept())?;
+        let (s, a) = await_nb!(&self.0, self.0.accept(), Read)?;
         Ok((TcpStream(s), a))
     }
 }
@@ -44,7 +46,10 @@ impl TcpListener {
 impl TcpStream {
     #[async]
     pub fn connect<'a>(addr: &'a SocketAddr) -> impl Async<IoResult<TcpStream>> + 'a {
-        await_nb!(sys::TcpStream::connect(addr)).map(TcpStream)
+        let socket = sys::TcpStream::connect(addr).map(TcpStream)?;
+        ::mirage_core::context().register_write(&socket.0);
+        yield;
+        return Ok(socket);
     }
 
 
@@ -53,7 +58,7 @@ impl TcpStream {
     where
         'b: 'a,
     {
-        await_nb!(self.0.read(buf))
+        await_nb!(&self.0, self.0.read(buf), Read)
     }
 
     #[async]
@@ -61,7 +66,7 @@ impl TcpStream {
     where
         'b: 'a,
     {
-        await_nb!(self.0.write(buf))
+        await_nb!(&self.0, self.0.write(buf), Write)
     }
 
     #[async]

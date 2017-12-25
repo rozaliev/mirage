@@ -1,7 +1,23 @@
-
-
 macro_rules! await_nb {
-    ($e: expr) => {
+    ($fd:expr, $e:expr, Read) => (
+        await_nb!($e, {
+            ::mirage_core::context().register_read($fd);
+        })
+    );
+
+    ($fd:expr, $e:expr, Write) => (
+        await_nb!($e, {
+            ::mirage_core::context().register_write($fd);
+        })
+    );
+
+    ($fd:expr, $e:expr, All) => (
+        await_nb!($e, {
+            ::mirage_core::context().register_all($fd);
+        })
+    );
+
+    ($e: expr, $p: expr) => {
         loop {
             {
                 let nb = $e;
@@ -14,6 +30,7 @@ macro_rules! await_nb {
                     },
                 }
             }
+            $p
             yield
         }
     };

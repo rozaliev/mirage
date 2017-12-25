@@ -31,10 +31,10 @@ pub fn async(_attribute: TokenStream, function: TokenStream) -> TokenStream {
                         };
                     }
                     i! {
-                        ::mirage_async::AsAsync(static move || {
+                        ::mirage_async::AsAsync(unsafe { static move || {
                             if false { yield };
                             #block
-                        })
+                        }})
                     }
                 }
             };
