@@ -3,7 +3,6 @@
 #![feature(generators)]
 #![feature(immovable_types)]
 
-
 #[macro_use]
 extern crate mirage_async;
 extern crate mirage_async_codegen;
@@ -16,9 +15,6 @@ use mirage_net::{TcpListener, TcpStream};
 use mirage_core::{context, Core};
 
 use std::io::Result as IoResult;
-
-
-
 
 #[test]
 fn echo() {
@@ -35,7 +31,6 @@ fn echo_main() -> impl Async<IoResult<()>> {
 
     context().spawn(echo_client());
     println!("after spawn client");
-
 
     let (conn, _) = await!(listener.accept())?;
     println!("after client accept");
@@ -54,8 +49,6 @@ fn handle_conn(mut conn: TcpStream) -> impl Async<IoResult<()>> {
         await!(conn.write_all(&buf[0..n]))?;
     }
 }
-
-
 
 #[async]
 fn echo_client() -> impl Async<()> {

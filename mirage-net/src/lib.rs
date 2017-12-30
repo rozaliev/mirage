@@ -2,7 +2,6 @@
 #![feature(generators)]
 #![feature(conservative_impl_trait)]
 
-
 #[macro_use]
 extern crate mirage_async;
 extern crate mirage_async_codegen;
@@ -10,7 +9,6 @@ extern crate mirage_core;
 
 extern crate mio;
 extern crate net2;
-
 
 use std::net::SocketAddr;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Write};
@@ -29,7 +27,6 @@ mod sys {
 pub struct TcpStream(sys::TcpStream);
 #[derive(Debug)]
 pub struct TcpListener(sys::TcpListener);
-
 
 impl TcpListener {
     pub fn bind(addr: &SocketAddr) -> IoResult<TcpListener> {
@@ -51,7 +48,6 @@ impl TcpStream {
         yield;
         return Ok(socket);
     }
-
 
     #[async]
     pub fn read<'a, 'b>(&'a mut self, buf: &'b mut [u8]) -> impl Async<IoResult<usize>> + 'a

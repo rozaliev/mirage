@@ -8,7 +8,6 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::collections::HashMap;
 
-
 use mirage_async::{Async, Await};
 
 thread_local!(static THREAD_CONTEXT: RefCell<Option<Context>> =  RefCell::new(None) );
@@ -33,7 +32,6 @@ pub struct Context {
     new_async_interests: Rc<Cell<Option<(RawFd, mio::Ready)>>>,
     current_token: Rc<Cell<mio::Token>>,
 }
-
 
 pub fn context() -> Context {
     THREAD_CONTEXT.with(|c| {
@@ -129,7 +127,6 @@ impl Core {
                     }
                 }
 
-
                 THREAD_CONTEXT.with(|c| {
                     let mut b = c.borrow_mut();
                     let new_tasks_ref = &mut b.as_mut().unwrap().new_tasks;
@@ -141,7 +138,6 @@ impl Core {
                         self.tasks.insert(next_tok, t);
                     }
                 });
-
 
                 // main fd
                 {
@@ -179,7 +175,6 @@ impl Core {
         mio::Token(self.last_task_id)
     }
 }
-
 
 impl Context {
     pub fn spawn<A: Async<()> + 'static>(&self, a: A) {
