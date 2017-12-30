@@ -44,7 +44,7 @@ impl TcpStream {
     #[async]
     pub fn connect<'a>(addr: &'a SocketAddr) -> impl Async<IoResult<TcpStream>> + 'a {
         let socket = sys::TcpStream::connect(addr).map(TcpStream)?;
-        ::mirage_core::context().register_write(&socket.0);
+        ::mirage_core::context().register_all(&socket.0);
         yield;
         return Ok(socket);
     }

@@ -192,7 +192,10 @@ impl Context {
             .set(Some((fd.as_raw_fd(), mio::Ready::writable())));
     }
 
-    pub fn register_all(&self) {}
+    pub fn register_all<T: AsRawFd>(&self, fd: &T) {
+        self.new_async_interests
+            .set(Some((fd.as_raw_fd(), mio::Ready::all())));
+    }
 
     fn current_token(&self) -> mio::Token {
         self.current_token.get()
