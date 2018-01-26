@@ -2,3 +2,5 @@
 **/*.rs.bk
 Cargo.lock
 /.vscode
+/.linux-target
+/.linux-cargo-cache
