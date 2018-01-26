@@ -8,7 +8,7 @@ mod macros;
 use std::ops::{Generator, GeneratorState};
 
 pub trait Async<R> {
-    fn poll(&mut self) -> Await<R>;
+    unsafe fn poll(&mut self) -> Await<R>;
 }
 
 pub enum Await<T> {
@@ -19,12 +19,12 @@ pub enum Await<T> {
 pub struct AsAsync<T>(pub T);
 
 impl<T: Generator<Return = R, Yield = ()>, R> Async<R> for AsAsync<T> {
-    fn poll(&mut self) -> Await<R> {
+    unsafe fn poll(&mut self) -> Await<R> {
         self.0.resume().into()
     }
 }
 impl<T: Generator<Return = R, Yield = ()>, R> Async<R> for Box<T> {
-    fn poll(&mut self) -> Await<R> {
+    unsafe fn poll(&mut self) -> Await<R> {
         (*self).resume().into()
     }
 }

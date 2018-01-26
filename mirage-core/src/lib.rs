@@ -15,7 +15,6 @@ thread_local!(static THREAD_CONTEXT: RefCell<Option<Context>> =  RefCell::new(No
 const MAIN_TASK: mio::Token = mio::Token(1);
 
 pub struct Core {
-    new_tasks: Rc<RefCell<Vec<Box<Async<()>>>>>,
     tasks: HashMap<mio::Token, Box<Async<()>>>,
 
     poll: mio::Poll,
@@ -57,7 +56,6 @@ impl Core {
         });
 
         Core {
-            new_tasks: new_tasks,
             tasks: HashMap::new(),
             poll: mio::Poll::new().unwrap(),
             events: mio::Events::with_capacity(1024),
@@ -73,7 +71,7 @@ impl Core {
 
         'main: loop {
             set_current_token(MAIN_TASK);
-            if let Await::Done(r) = g.poll() {
+            if let Await::Done(r) = unsafe { g.poll() } {
                 return r;
             }
 
@@ -95,7 +93,7 @@ impl Core {
                 'inner_tasks: for (tok, task) in self.tasks.iter_mut() {
                     // trace!("inner tasks: {:?}", tok);
                     set_current_token(*tok);
-                    match task.poll() {
+                    match unsafe { task.poll() } {
                         Await::NotReady => {
                             if let Some(v) = self.new_async_interests.get().take() {
                                 self.poll
@@ -194,11 +192,7 @@ impl Context {
 
     pub fn register_all<T: AsRawFd>(&self, fd: &T) {
         self.new_async_interests
-            .set(Some((fd.as_raw_fd(), mio::Ready::all())));
-    }
-
-    fn current_token(&self) -> mio::Token {
-        self.current_token.get()
+            .set(Some((fd.as_raw_fd(), mio::Ready::readable() | mio::Ready::writable())));
     }
 }
 
