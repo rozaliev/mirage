@@ -1,4 +1,5 @@
 # Mirage
+[![Build Status](https://travis-ci.org/rozaliev/mirage.svg?branch=master)](https://travis-ci.org/rozaliev/mirage)
 
 Mirage is a set of libraries for building async applications. It provides
 async/await syntax and a networking library similar to std::net.
