@@ -5,14 +5,10 @@ authors = ["Evgeny Rozaliev <rozaliev@gmail.com>"]
 
 [lib]
 proc-macro = true
-
 [dependencies]
-quote = { git = "https://github.com/dtolnay/quote" }
-
+quote = "0.4.2"
 
 [dependencies.syn]
-git = 'https://github.com/dtolnay/syn'
-rev = "d5e985994ca58039ea22d6fde8acb821d9058f2f"
+version = "0.12.10"
 features = ["full", "fold", "parsing", "printing", "extra-traits", "clone-impls"]
 default-features = false
-

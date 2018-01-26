@@ -12,8 +12,8 @@ use proc_macro::TokenStream;
 pub fn async(_attribute: TokenStream, function: TokenStream) -> TokenStream {
     let mut i: Item = syn::parse(function).unwrap();
     {
-        let item_fn = match i.node {
-            ItemKind::Fn(ref mut item) => item,
+        let item_fn = match i {
+            Item::Fn(ref mut item) => item,
             _ => panic!("async attr can only be used on functions"),
         };
 
