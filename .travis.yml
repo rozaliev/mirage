@@ -2,7 +2,8 @@ language: rust
 rust:
   - nightly
 cache: cargo
-
+env:
+  - RUST_BACKTRACE=1
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
