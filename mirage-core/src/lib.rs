@@ -1,5 +1,4 @@
-#![feature(immovable_types)]
-
+extern crate libc;
 extern crate mio;
 extern crate mirage_async;
 
@@ -76,14 +75,25 @@ impl Core {
             }
 
             if let Some(v) = self.new_async_interests.get().take() {
-                self.poll
-                    .register(
-                        &mio::unix::EventedFd(&v.0),
-                        MAIN_TASK,
-                        v.1,
-                        mio::PollOpt::edge(),
-                    )
-                    .unwrap();
+                match self.poll.register(
+                    &mio::unix::EventedFd(&v.0),
+                    MAIN_TASK,
+                    v.1,
+                    mio::PollOpt::edge(),
+                ) {
+                    Ok(_) => {}
+                    Err(ref e) if e.raw_os_error() == Some(libc::EEXIST) => {
+                        self.poll
+                            .reregister(
+                                &mio::unix::EventedFd(&v.0),
+                                MAIN_TASK,
+                                v.1,
+                                mio::PollOpt::edge(),
+                            )
+                            .unwrap();
+                    }
+                    Err(err) => panic!(err),
+                }
             }
 
             // trace!("main task not ready");
@@ -96,14 +106,25 @@ impl Core {
                     match unsafe { task.poll() } {
                         Await::NotReady => {
                             if let Some(v) = self.new_async_interests.get().take() {
-                                self.poll
-                                    .register(
-                                        &mio::unix::EventedFd(&v.0),
-                                        *tok,
-                                        v.1,
-                                        mio::PollOpt::edge(),
-                                    )
-                                    .unwrap();
+                                match self.poll.register(
+                                    &mio::unix::EventedFd(&v.0),
+                                    *tok,
+                                    v.1,
+                                    mio::PollOpt::edge(),
+                                ) {
+                                    Ok(_) => {}
+                                    Err(ref e) if e.raw_os_error() == Some(libc::EEXIST) => {
+                                        self.poll
+                                            .reregister(
+                                                &mio::unix::EventedFd(&v.0),
+                                                *tok,
+                                                v.1,
+                                                mio::PollOpt::edge(),
+                                            )
+                                            .unwrap();
+                                    }
+                                    Err(err) => panic!(err),
+                                }
                             }
                             new_awaiting.push(*tok);
                         }
@@ -191,8 +212,10 @@ impl Context {
     }
 
     pub fn register_all<T: AsRawFd>(&self, fd: &T) {
-        self.new_async_interests
-            .set(Some((fd.as_raw_fd(), mio::Ready::readable() | mio::Ready::writable())));
+        self.new_async_interests.set(Some((
+            fd.as_raw_fd(),
+            mio::Ready::readable() | mio::Ready::writable(),
+        )));
     }
 }
 
