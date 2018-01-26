@@ -2,7 +2,6 @@
 #![feature(generator_trait)]
 #![feature(immovable_types)]
 
-#[macro_export]
 mod macros;
 
 use std::ops::{Generator, GeneratorState};
